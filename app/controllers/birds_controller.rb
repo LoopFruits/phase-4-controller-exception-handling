@@ -1,4 +1,6 @@
 class BirdsController < ApplicationController
+  #using rescue_from at the top allows us to ommit our exeptions handling from all of our controller actions 
+  # # rescue_from ActiveRecord::RecordNotFound, with: :render_not_found_response
 
   # GET /birds
   def index
@@ -14,23 +16,21 @@ class BirdsController < ApplicationController
 
   # GET /birds/:id
   def show
-    bird = Bird.find_by(id: params[:id])
-    if bird
-      render json: bird
-    else
-      render json: { error: "Bird not found" }, status: :not_found
-    end
+    bird = find_bird
+    render json: bird
+   #exception handling rather than if/else
+  rescue ActiveRecord::RecordNotFound
+    render_not_found_response
   end
 
-  # PATCH /birds/:id
+  # PATCH /birds/:id 
   def update
-    bird = Bird.find_by(id: params[:id])
-    if bird
-      bird.update(bird_params)
-      render json: bird
-    else
-      render json: { error: "Bird not found" }, status: :not_found
-    end
+    bird = find_bird
+    #exception handling rather than if/else
+    bird.update(bird_params)
+    render json: bird
+  rescue ActiveRecord::RecordNotFound
+    render_not_found_response
   end
 
   # PATCH /birds/:id/like
@@ -59,6 +59,14 @@ class BirdsController < ApplicationController
 
   def bird_params
     params.permit(:name, :species, :likes)
+  end
+
+  def render_not_found_response
+    render json: { error: "Bird not found" }, status: :not_found
+  end
+
+  def find_bird
+    Bird.find(id: params[:id])
   end
 
 end
